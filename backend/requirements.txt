@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-multipart
+psycopg2-binary
+SQLAlchemy
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
+langchain
+openai
+faiss-cpu
+pdfplumber
+python-docx
+pydantic
+numpy
+requests
