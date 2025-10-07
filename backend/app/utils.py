@@ -6,8 +6,7 @@ def extract_text_from_pdf(path):
     texts = []
     with pdfplumber.open(path) as pdf:
         for page in pdf.pages:
-            t = page.extract_text()
-            if t:
+            if (t := page.extract_text()):
                 texts.append(t)
     return "\n".join(texts)
 
@@ -26,5 +25,5 @@ def extract_text(path, filename):
         # fallback - treat as plain text
         try:
             return open(path, encoding="utf-8").read()
-        except:
+        except Exception:
             return ""
