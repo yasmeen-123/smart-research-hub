@@ -13,7 +13,7 @@ export default function Home() {
   const [results, setResults] = useState(null);
 
   // Backend API base URL
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev/";
 
   // ✅ Register User
   const register = async () => {
