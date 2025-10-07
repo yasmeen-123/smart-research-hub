@@ -12,17 +12,23 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
 
-  // Backend API base URL
+  // ✅ Backend API base URL
+  // Make sure your backend URL works when opened in browser
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev/";
 
   // ✅ Register User
   const register = async () => {
     try {
-      const res = await axios.post(`${API_BASE}/register`, { email, password });
-      alert("Registered and logged in");
-      console.log("Register success:", res.data);
+      console.log("Registering via:", `${API_BASE}/register`);
+
+      const res = await axios.post(`${API_BASE}/register`, {
+        email,
+        password,
+      });
+      alert("Registered and logged in successfully!");
+      console.log("✅ Register success:", res.data);
     } catch (e) {
-      console.error("Register error:", e);
+      console.error("❌ Register error:", e);
       alert(e.response?.data?.detail || "Network error — cannot reach backend");
     }
   };
@@ -30,12 +36,17 @@ export default function Home() {
   // ✅ Login User
   const login = async () => {
     try {
-      const res = await axios.post(`${API_BASE}/login`, { email, password });
+      console.log("Logging in via:", `${API_BASE}/login`);
+
+      const res = await axios.post(`${API_BASE}/login`, {
+        email,
+        password,
+      });
       setToken(res.data.access_token);
-      alert("Logged in");
-      console.log("Login success:", res.data);
+      alert("Login successful!");
+      console.log("✅ Login success:", res.data);
     } catch (e) {
-      console.error("Login error:", e);
+      console.error("❌ Login error:", e);
       alert(e.response?.data?.detail || e.message);
     }
   };
@@ -51,6 +62,8 @@ export default function Home() {
     fd.append("file", file);
 
     try {
+      console.log("Uploading via:", `${API_BASE}/upload`);
+
       const res = await axios.post(`${API_BASE}/upload`, fd, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -58,9 +71,9 @@ export default function Home() {
         },
       });
       setUploadMsg(JSON.stringify(res.data));
-      console.log("Upload success:", res.data);
+      console.log("✅ Upload success:", res.data);
     } catch (e) {
-      console.error("Upload error:", e);
+      console.error("❌ Upload error:", e);
       alert(e.response?.data?.detail || e.message);
     }
   };
@@ -68,6 +81,8 @@ export default function Home() {
   // ✅ Perform Search
   const doSearch = async () => {
     try {
+      console.log("Searching via:", `${API_BASE}/search`);
+
       const res = await axios.post(
         `${API_BASE}/search`,
         { query },
@@ -76,9 +91,9 @@ export default function Home() {
         }
       );
       setResults(res.data);
-      console.log("Search results:", res.data);
+      console.log("✅ Search results:", res.data);
     } catch (e) {
-      console.error("Search error:", e);
+      console.error("❌ Search error:", e);
       alert(e.response?.data?.detail || e.message);
     }
   };
@@ -92,15 +107,16 @@ export default function Home() {
         margin: "0 auto",
       }}
     >
-      <h1>Smart Research Hub — MVP</h1>
+      <h1>🌐 Smart Research Hub — MVP</h1>
 
-      {/* Auth Section */}
+      {/* ================= AUTH SECTION ================= */}
       <section style={{ marginTop: 20 }}>
-        <h2>Auth</h2>
+        <h2>Authentication</h2>
         <input
           placeholder="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          style={{ marginRight: 10 }}
         />
         <input
           placeholder="password"
@@ -108,35 +124,44 @@ export default function Home() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button onClick={register}>Register</button>
-        <button onClick={login}>Login</button>
-        <div>
-          Token: {token ? token.slice(0, 40) + "..." : "not logged in"}
+        <div style={{ marginTop: 10 }}>
+          <button onClick={register}>Register</button>
+          <button onClick={login} style={{ marginLeft: 10 }}>
+            Login
+          </button>
+        </div>
+        <div style={{ marginTop: 10 }}>
+          Token: {token ? token.slice(0, 40) + "..." : "❌ not logged in"}
         </div>
       </section>
 
-      {/* Upload Section */}
-      <section style={{ marginTop: 20 }}>
+      {/* ================= UPLOAD SECTION ================= */}
+      <section style={{ marginTop: 40 }}>
         <h2>Upload Document</h2>
         <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        <button onClick={upload} disabled={!token}>
+        <button
+          onClick={upload}
+          disabled={!token}
+          style={{ marginLeft: 10 }}
+        >
           Upload
         </button>
-        <div>{uploadMsg}</div>
+        <div style={{ marginTop: 10 }}>{uploadMsg}</div>
       </section>
 
-      {/* Search Section */}
-      <section style={{ marginTop: 20 }}>
+      {/* ================= SEARCH SECTION ================= */}
+      <section style={{ marginTop: 40 }}>
         <h2>Semantic Search</h2>
         <input
           placeholder="Ask something..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          style={{ marginRight: 10 }}
         />
         <button onClick={doSearch} disabled={!token}>
           Search
         </button>
-        <pre>
+        <pre style={{ background: "#f4f4f4", padding: 10, marginTop: 20 }}>
           {results ? JSON.stringify(results, null, 2) : "No results yet."}
         </pre>
       </section>
