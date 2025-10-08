@@ -15,7 +15,7 @@ export default function Home() {
   // ✅ Backend API base URL
   // Make sure your backend URL works when opened in browser
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev/";
-
+    console.log("API Base is:", API_BASE);
   // ✅ Register User
   const register = async () => {
     try {
@@ -131,7 +131,7 @@ export default function Home() {
           </button>
         </div>
         <div style={{ marginTop: 10 }}>
-          Token: {token ? token.slice(0, 40) + "..." : "❌ not logged in"}
+          Token: {token ? token.slice(0, 40) + "..." : " not logged in"}
         </div>
       </section>
 
