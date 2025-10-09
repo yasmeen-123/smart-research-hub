@@ -3,5 +3,30 @@
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.14"
-  }
+  },
+  "name": "smart-research-hub",
+  "description": "A web-based AI-powered knowledge platform that allows users to upload research documents, perform semantic search, generate summaries, and collaborate using LLM integration with a RAG pipeline. ## Local Setup 1. Clone repo. 2. Run `docker-compose up` in root. 3. Open http://localhost:3000.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "baseline-browser-mapping": "^2.8.12",
+    "browserslist": "^4.26.3",
+    "caniuse-lite": "^1.0.30001748",
+    "electron-to-chromium": "^1.5.230",
+    "escalade": "^3.2.0",
+    "fraction.js": "^4.3.7",
+    "nanoid": "^3.3.11",
+    "node-releases": "^2.0.23",
+    "normalize-range": "^0.1.2",
+    "picocolors": "^1.1.1",
+    "postcss-value-parser": "^4.2.0",
+    "source-map-js": "^1.2.1",
+    "update-browserslist-db": "^1.1.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
