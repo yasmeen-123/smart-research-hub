@@ -13,23 +13,28 @@ export default function Home() {
   const [results, setResults] = useState(null);
 
   // ✅ Backend API base URL
-  // Make sure your backend URL works when opened in browser
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev/";
-    console.log("API Base is:", API_BASE);
+  // Make sure your backend is accessible in the browser at this URL
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE ||
+    "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev";
+
+  console.log("API Base is:", API_BASE);
+
+  // ✅ Helper for error messages
+  const handleError = (e, fallback = "Network error — cannot reach backend") => {
+    console.error("❌ API error:", e);
+    alert(e.response?.data?.detail || e.message || fallback);
+  };
+
   // ✅ Register User
   const register = async () => {
     try {
       console.log("Registering via:", `${API_BASE}/register`);
-
-      const res = await axios.post(`${API_BASE}/register`, {
-        email,
-        password,
-      });
+      const res = await axios.post(`${API_BASE}/register`, { email, password });
       alert("Registered and logged in successfully!");
       console.log("✅ Register success:", res.data);
     } catch (e) {
-      console.error("❌ Register error:", e);
-      alert(e.response?.data?.detail || "Network error — cannot reach backend");
+      handleError(e);
     }
   };
 
@@ -37,17 +42,12 @@ export default function Home() {
   const login = async () => {
     try {
       console.log("Logging in via:", `${API_BASE}/login`);
-
-      const res = await axios.post(`${API_BASE}/login`, {
-        email,
-        password,
-      });
+      const res = await axios.post(`${API_BASE}/login`, { email, password });
       setToken(res.data.access_token);
       alert("Login successful!");
       console.log("✅ Login success:", res.data);
     } catch (e) {
-      console.error("❌ Login error:", e);
-      alert(e.response?.data?.detail || e.message);
+      handleError(e);
     }
   };
 
@@ -63,7 +63,6 @@ export default function Home() {
 
     try {
       console.log("Uploading via:", `${API_BASE}/upload`);
-
       const res = await axios.post(`${API_BASE}/upload`, fd, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -73,8 +72,7 @@ export default function Home() {
       setUploadMsg(JSON.stringify(res.data));
       console.log("✅ Upload success:", res.data);
     } catch (e) {
-      console.error("❌ Upload error:", e);
-      alert(e.response?.data?.detail || e.message);
+      handleError(e);
     }
   };
 
@@ -82,19 +80,15 @@ export default function Home() {
   const doSearch = async () => {
     try {
       console.log("Searching via:", `${API_BASE}/search`);
-
       const res = await axios.post(
         `${API_BASE}/search`,
         { query },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setResults(res.data);
       console.log("✅ Search results:", res.data);
     } catch (e) {
-      console.error("❌ Search error:", e);
-      alert(e.response?.data?.detail || e.message);
+      handleError(e);
     }
   };
 
@@ -139,11 +133,7 @@ export default function Home() {
       <section style={{ marginTop: 40 }}>
         <h2>Upload Document</h2>
         <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        <button
-          onClick={upload}
-          disabled={!token}
-          style={{ marginLeft: 10 }}
-        >
+        <button onClick={upload} disabled={!token} style={{ marginLeft: 10 }}>
           Upload
         </button>
         <div style={{ marginTop: 10 }}>{uploadMsg}</div>
