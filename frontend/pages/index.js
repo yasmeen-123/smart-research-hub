@@ -16,7 +16,7 @@ export default function Home() {
   // Make sure your backend is accessible in the browser at this URL
   const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE ||
-    "https://stunning-space-sniffle-q776vr4j4gpg295x-8000.app.github.dev";
+    "http://127.0.0.1:8000";
 
   console.log("API Base is:", API_BASE);
 
