@@ -1,10 +1,17 @@
-# simple SQLAlchemy setup for users and workspaces
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:pass123@localhost:5432/researchdb")
+# ✅ Use SQLite (creates a local file named test.db)
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
-engine = create_engine(DATABASE_URL)
+# For SQLite, we need this argument
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
+# Create a session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for models
 Base = declarative_base()
