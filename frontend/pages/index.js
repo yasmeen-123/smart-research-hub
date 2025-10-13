@@ -13,14 +13,8 @@ export default function Home() {
   const [results, setResults] = useState(null);
 
   // ✅ Backend API base URL
-  // Make sure your backend is accessible in the browser at this URL
-  // ✅ Backend API base URL
-// Use the backend service name in Docker, and localhost for local development
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || // Use environment variable if set
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "http://127.0.0.1:8000" // Local development
-    : "http://backend:8000"); // Docker environment
+  // Use environment variable if set, otherwise default to localhost
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
   console.log("API Base is:", API_BASE);
 
