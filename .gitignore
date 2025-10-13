@@ -35,3 +35,13 @@ Thumbs.db
 # Local env files
 .env
 .env.local
+
+# Database files
+*.db
+*.db-journal
+
+# Upload directory
+uploads/
+
+# FAISS index
+*.index

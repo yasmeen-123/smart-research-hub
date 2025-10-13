@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import faiss
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

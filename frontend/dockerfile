@@ -19,5 +19,8 @@ RUN npx tailwindcss -i ./styles/globals.css -o ./styles/output.css --minify || t
 # Expose port
 EXPOSE 3000
 
+# Set default API base URL (can be overridden by docker-compose)
+ENV NEXT_PUBLIC_API_BASE=http://backend:8000
+
 # Run Next.js app
 CMD ["npm", "run", "dev"]
