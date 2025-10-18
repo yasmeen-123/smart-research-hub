@@ -14,8 +14,6 @@ export default function Home() {
 
   // ✅ Backend API base URL
   // Make sure your backend is accessible in the browser at this URL
-  // ✅ Backend API base URL
-// Use the backend service name in Docker, and localhost for local development
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE || // Use environment variable if set
   (typeof window !== "undefined" && window.location.hostname === "localhost"
