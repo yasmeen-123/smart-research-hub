@@ -25,7 +25,10 @@ app = FastAPI(title="Smart Research Hub API", version="1.0")
 # --- ✅ Enable CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://your-frontend-domain.com"],  # 👈 Allow all origins (you can restrict later)
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",   # 👈 add this line
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
