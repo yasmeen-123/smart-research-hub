@@ -11,7 +11,7 @@ app.use(express.json());
 
 // ✅ Allow your frontend origin
 app.use(cors({
-  origin: "https://stunning-space-sniffle-q776vr4j4gpg295x-3000.app.github.dev", // replace with your frontend URL
+  origin: "http://localhost:3000", // replace with your frontend URL
   credentials: true
 }));
 
