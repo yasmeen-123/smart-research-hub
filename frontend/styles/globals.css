@@ -1,7 +1,7 @@
 /* Import Tailwind layers */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Optional global styles */
 body {
   background-color: rgb(122, 160, 201); /* Tailwind bg-gray-50 */
