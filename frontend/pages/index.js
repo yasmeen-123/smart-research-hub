@@ -145,7 +145,7 @@ const API_BASE =
       <section style={{ marginTop: 40 }}>
         <h2>Semantic Search</h2>
         <input
-          placeholder="Ask something..."
+          placeholder="Ask something"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{ marginRight: 10 }}
