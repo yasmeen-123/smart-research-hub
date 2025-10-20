@@ -5,7 +5,7 @@ from fastapi import FastAPI, Depends, File, UploadFile, HTTPException, Header
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware  # ✅ Added this
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Load environment variables ---
 load_dotenv()
@@ -22,14 +22,18 @@ models.Base.metadata.create_all(bind=engine)
 # --- Create FastAPI app ---
 app = FastAPI(title="Smart Research Hub API", version="1.0")
 
-# --- ✅ Enable CORS ---
+# --- ✅ Enable CORS (Allow frontend at localhost:3000) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000"],  # Add your frontend's URL
+    allow_origins=[
+        "http://127.0.0.1:3000",
+        "http://localhost:3000"
+    ],  # both forms, for safety
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # --- File upload directory ---
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -56,9 +60,9 @@ def register(u: UserCreate, db: Session = Depends(get_db)):
     try:
         db.commit()
         db.refresh(new_user)
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered") from e
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     token = auth.create_access_token({"sub": new_user.email, "id": new_user.id})
     return {"access_token": token, "token_type": "bearer"}
@@ -82,10 +86,10 @@ def get_current_user(authorization: str = Header(None), db: Session = Depends(ge
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    if not (user := db.query(models.User).filter(models.User.email == payload.get("sub")).first()):
+    user = db.query(models.User).filter(models.User.email == payload.get("sub")).first()
+    if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    else:
-        return user
+    return user
 
 # --- Upload file ---
 @app.post("/upload")
@@ -133,4 +137,5 @@ def search(q: dict, user=Depends(get_current_user)):
 # --- Run the server ---
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.1", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    
