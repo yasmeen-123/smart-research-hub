@@ -63,5 +63,5 @@ const options = {
 };
 
 https.createServer(options, app).listen(8000, () => {
-  console.log("🚀 API running on https://localhost:8000");
+  console.log("🚀 API running on http://localhost:8000");
 });
