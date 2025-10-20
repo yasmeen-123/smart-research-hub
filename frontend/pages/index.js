@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Home() {
@@ -13,14 +13,21 @@ export default function Home() {
   const [results, setResults] = useState(null);
 
   // ✅ Backend API base URL
-  // Make sure your backend is accessible in the browser at this URL
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || // Use environment variable if set
-  (typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "http://127.0.0.1:8000" // Local development
-    : "http://backend:8000"); // Docker environment
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_URL || // Use environment variable if set
+    (typeof window !== "undefined" && window.location.hostname === "localhost"
+      ? "http://127.0.0.1:8000" // Local development
+      : "http://backend:8000"); // Docker environment
 
   console.log("API Base is:", API_BASE);
+
+  // ✅ Load token from localStorage on page load
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+    }
+  }, []);
 
   // ✅ Helper for error messages
   const handleError = (e, fallback = "Network error — cannot reach backend") => {
@@ -45,7 +52,9 @@ const API_BASE =
     try {
       console.log("Logging in via:", `${API_BASE}/login`);
       const res = await axios.post(`${API_BASE}/login`, { email, password });
-      setToken(res.data.access_token);
+      const accessToken = res.data.access_token;
+      setToken(accessToken);
+      localStorage.setItem("token", accessToken); // Persist token
       alert("Login successful!");
       console.log("✅ Login success:", res.data);
     } catch (e) {
@@ -57,6 +66,12 @@ const API_BASE =
   const upload = async () => {
     if (!file) {
       alert("Select a file first");
+      return;
+    }
+
+    // Validate file size (e.g., max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds the limit of 5MB");
       return;
     }
 
