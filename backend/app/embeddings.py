@@ -1,15 +1,26 @@
 import os
 import numpy as np
 import faiss
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+_MODEL_DIMENSIONS = {
+    "text-embedding-3-small": 1536,
+    "text-embedding-3-large": 3072,
+}
+DIM = int(os.getenv("EMBEDDING_DIM", _MODEL_DIMENSIONS.get(EMBEDDING_MODEL, 1536)))
 
-embeddings_client = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY environment variable is required")
+
+embeddings_client = OpenAIEmbeddings(
+    model=EMBEDDING_MODEL,
+    openai_api_key=OPENAI_API_KEY,
+)
 
 INDEX_PATH = "faiss_index.idx"
-DIM = 1536  # OpenAI text-embedding-3-small/large dims vary; adjust if needed
 
 def create_embeddings_index(vectors=None):
     index = faiss.IndexFlatL2(DIM)
