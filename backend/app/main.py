@@ -60,9 +60,9 @@ def register(u: UserCreate, db: Session = Depends(get_db)):
     try:
         db.commit()
         db.refresh(new_user)
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail=f"Email already registered: {str(e)}")
 
     token = auth.create_access_token({"sub": new_user.email, "id": new_user.id})
     return {"access_token": token, "token_type": "bearer"}
@@ -86,10 +86,10 @@ def get_current_user(authorization: str = Header(None), db: Session = Depends(ge
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(models.User).filter(models.User.email == payload.get("sub")).first()
-    if not user:
+    if not (user := db.query(models.User).filter(models.User.email == payload.get("sub")).first()):
         raise HTTPException(status_code=401, detail="User not found")
-    return user
+    else:
+        return user
 
 # --- Upload file ---
 @app.post("/upload")
@@ -138,4 +138,3 @@ def search(q: dict, user=Depends(get_current_user)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
-    
