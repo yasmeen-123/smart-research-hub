@@ -60,9 +60,9 @@ def register(u: UserCreate, db: Session = Depends(get_db)):
     try:
         db.commit()
         db.refresh(new_user)
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail=f"Email already registered: {str(e)}")
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     token = auth.create_access_token({"sub": new_user.email, "id": new_user.id})
     return {"access_token": token, "token_type": "bearer"}
@@ -138,3 +138,4 @@ def search(q: dict, user=Depends(get_current_user)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    
