@@ -12,7 +12,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
 
-  // ✅ Backend API base URL
+  // ✅ Backend API base URL (No change needed here)
   const API_BASE =
     process.env.NEXT_PUBLIC_API_URL ||
     (typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -57,7 +57,7 @@ export default function Home() {
       const accessToken = res.data.access_token;
       setToken(accessToken);
       localStorage.setItem("token", accessToken);
-      alert("✅ Registered successfully!");
+      alert("✅ Registered successfully! Token saved.");
       console.log("Register response:", res.data);
     } catch (e) {
       handleError(e);
@@ -72,18 +72,29 @@ export default function Home() {
       console.log("Logging in via:", `${API_BASE}/login`);
       const res = await axios.post(
         `${API_BASE}/login`,
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
+        { email, password }
+        // Removed redundant "Content-Type" header
       );
 
       const accessToken = res.data.access_token;
       setToken(accessToken);
       localStorage.setItem("token", accessToken);
-      alert("✅ Login successful!");
+      alert("✅ Login successful! Token saved.");
       console.log("Login response:", res.data);
     } catch (e) {
       handleError(e);
     }
+  };
+  
+  // 💡 NEW: Logout User function
+  const logout = () => {
+    setToken("");
+    setEmail(""); 
+    setPassword(""); 
+    setUploadMsg("");
+    setResults(null);
+    localStorage.removeItem("token");
+    alert("👋 Logged out successfully!");
   };
 
   // ✅ Upload File
@@ -114,6 +125,7 @@ export default function Home() {
       });
 
       setUploadMsg(JSON.stringify(res.data, null, 2));
+      alert("Document uploaded and indexed!");
       console.log("Upload response:", res.data);
     } catch (e) {
       handleError(e);
@@ -166,9 +178,15 @@ export default function Home() {
           <button onClick={login} style={{ marginLeft: 10 }}>
             Login
           </button>
+          {/* 💡 NEW: Logout Button */}
+          {token && (
+            <button onClick={logout} style={{ marginLeft: 10, background: "#ff6666", color: "white" }}>
+              Logout
+            </button>
+          )}
         </div>
         <div style={{ marginTop: 10 }}>
-          Token: {token ? token.slice(0, 40) + "..." : " not logged in"}
+          Token: **{token ? token.slice(0, 40) + "..." : " not logged in"}**
         </div>
       </section>
 
@@ -190,6 +208,7 @@ export default function Home() {
           Search
         </button>
         <pre style={{ background: "#f4f4f4", padding: 10, marginTop: 20 }}>
+          {/* Enhanced display to show the search results clearly */}
           {results ? JSON.stringify(results, null, 2) : "No results yet."}
         </pre>
       </section>
