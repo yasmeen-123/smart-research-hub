@@ -4,7 +4,7 @@ import faiss
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("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")
 EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 _MODEL_DIMENSIONS = {
     "text-embedding-3-small": 1536,
@@ -20,32 +20,43 @@ embeddings_client = OpenAIEmbeddings(
     openai_api_key=OPENAI_API_KEY,
 )
 
-INDEX_PATH = "faiss_index.idx"
+INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_index.idx")
+
 
 def create_embeddings_index(vectors=None):
+    # Using flat L2 index — replace with IndexIVFFlat for larger scale
     index = faiss.IndexFlatL2(DIM)
-    if vectors is not None:
-        index.add(np.array(vectors).astype("float32"))
+    if vectors is not None and len(vectors) > 0:
+        arr = np.vstack(vectors).astype("float32")
+        index.add(arr)
     return index
 
-def chunk_text(text, chunk_size=500, overlap=50):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
-    return splitter.split_text(text)
 
-def embed_texts(texts):
-    # returns list of vectors (floats)
-    vs = []
-    for t in texts:
-        emb = embeddings_client.embed_query(t)
-        vs.append(np.array(emb).astype("float32"))
-    return vs
-
-# simple persistence
 def save_index(index):
     faiss.write_index(index, INDEX_PATH)
+
 
 def load_index():
     if os.path.exists(INDEX_PATH):
         return faiss.read_index(INDEX_PATH)
     else:
         return create_embeddings_index()
+
+
+def chunk_text(text, chunk_size=500, overlap=50):
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
+    return splitter.split_text(text)
+
+
+def embed_texts(texts):
+    """
+    Return list of vectors shaped (n, DIM) as numpy float32 arrays.
+    """
+    vectors = []
+    for t in texts:
+        emb = embeddings_client.embed_query(t)
+        arr = np.array(emb, dtype="float32").reshape(1, -1)  # ensure 2D
+        vectors.append(arr)
+    if vectors:
+        return np.vstack(vectors)  # shape (n, DIM)
+    return np.zeros((0, DIM), dtype="float32")

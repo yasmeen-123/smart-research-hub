@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # --- Load environment variables ---
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("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")
 
 # --- Import project modules ---
 from . import db, models, auth, utils, embeddings
