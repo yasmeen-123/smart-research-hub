@@ -14,19 +14,17 @@ export default function Home() {
 
   // ✅ Backend API base URL
   const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || // Use environment variable if set
+    process.env.NEXT_PUBLIC_API_URL ||
     (typeof window !== "undefined" && window.location.hostname === "localhost"
-      ? "http://127.0.0.1:8000" // Local development
-      : "http://backend:8000"); // Docker environment
+      ? "http://127.0.0.1:8000"
+      : "http://backend:8000");
 
   console.log("API Base is:", API_BASE);
 
-  // ✅ Load token from localStorage on page load
+  // ✅ Load token from localStorage
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
-    if (savedToken) {
-      setToken(savedToken);
-    }
+    if (savedToken) setToken(savedToken);
   }, []);
 
   // ✅ Helper for error messages
@@ -35,13 +33,32 @@ export default function Home() {
     alert(e.response?.data?.detail || e.message || fallback);
   };
 
+  // ✅ Validate email and password
+  const validateCredentials = () => {
+    if (!email.trim() || !password.trim()) {
+      alert("Email and password cannot be empty");
+      return false;
+    }
+    return true;
+  };
+
   // ✅ Register User
   const register = async () => {
+    if (!validateCredentials()) return;
+
     try {
       console.log("Registering via:", `${API_BASE}/register`);
-      const res = await axios.post(`${API_BASE}/register`, { email, password });
-      alert("Registered and logged in successfully!");
-      console.log("✅ Register success:", res.data);
+      const res = await axios.post(
+        `${API_BASE}/register`,
+        { email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      const accessToken = res.data.access_token;
+      setToken(accessToken);
+      localStorage.setItem("token", accessToken);
+      alert("✅ Registered successfully!");
+      console.log("Register response:", res.data);
     } catch (e) {
       handleError(e);
     }
@@ -49,14 +66,21 @@ export default function Home() {
 
   // ✅ Login User
   const login = async () => {
+    if (!validateCredentials()) return;
+
     try {
       console.log("Logging in via:", `${API_BASE}/login`);
-      const res = await axios.post(`${API_BASE}/login`, { email, password });
+      const res = await axios.post(
+        `${API_BASE}/login`,
+        { email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
       const accessToken = res.data.access_token;
       setToken(accessToken);
-      localStorage.setItem("token", accessToken); // Persist token
-      alert("Login successful!");
-      console.log("✅ Login success:", res.data);
+      localStorage.setItem("token", accessToken);
+      alert("✅ Login successful!");
+      console.log("Login response:", res.data);
     } catch (e) {
       handleError(e);
     }
@@ -68,10 +92,12 @@ export default function Home() {
       alert("Select a file first");
       return;
     }
-
-    // Validate file size (e.g., max 5MB)
+    if (!token) {
+      alert("You must login first");
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size exceeds the limit of 5MB");
+      alert("File size exceeds 5MB");
       return;
     }
 
@@ -86,8 +112,9 @@ export default function Home() {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUploadMsg(JSON.stringify(res.data));
-      console.log("✅ Upload success:", res.data);
+
+      setUploadMsg(JSON.stringify(res.data, null, 2));
+      console.log("Upload response:", res.data);
     } catch (e) {
       handleError(e);
     }
@@ -95,45 +122,44 @@ export default function Home() {
 
   // ✅ Perform Search
   const doSearch = async () => {
+    if (!query.trim()) {
+      alert("Query cannot be empty");
+      return;
+    }
+    if (!token) {
+      alert("You must login first");
+      return;
+    }
+
     try {
       console.log("Searching via:", `${API_BASE}/search`);
       const res = await axios.post(
         `${API_BASE}/search`,
         { query },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
+
       setResults(res.data);
-      console.log("✅ Search results:", res.data);
+      console.log("Search response:", res.data);
     } catch (e) {
       handleError(e);
     }
   };
 
   return (
-    <div
-      style={{
-        padding: 24,
-        fontFamily: "sans-serif",
-        maxWidth: 800,
-        margin: "0 auto",
-      }}
-    >
-      <h1>🌐 Smart Research Hub — MVP</h1>
+    <div style={{ padding: 24, fontFamily: "sans-serif", maxWidth: 800, margin: "0 auto" }}>
+      <h1>🌐 Smart Research Hub </h1>
 
-      {/* ================= AUTH SECTION ================= */}
+      {/* AUTH SECTION */}
       <section style={{ marginTop: 20 }}>
         <h2>Authentication</h2>
-        <input
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ marginRight: 10 }}
-        />
+        <input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <input
           placeholder="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          style={{ marginLeft: 10 }}
         />
         <div style={{ marginTop: 10 }}>
           <button onClick={register}>Register</button>
@@ -146,26 +172,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= UPLOAD SECTION ================= */}
+      {/* UPLOAD SECTION */}
       <section style={{ marginTop: 40 }}>
         <h2>Upload Document</h2>
         <input type="file" onChange={(e) => setFile(e.target.files[0])} />
         <button onClick={upload} disabled={!token} style={{ marginLeft: 10 }}>
           Upload
         </button>
-        <div style={{ marginTop: 10 }}>{uploadMsg}</div>
+        <pre style={{ background: "#f4f4f4", padding: 10, marginTop: 10 }}>{uploadMsg}</pre>
       </section>
 
-      {/* ================= SEARCH SECTION ================= */}
+      {/* SEARCH SECTION */}
       <section style={{ marginTop: 40 }}>
         <h2>Semantic Search</h2>
-        <input
-          placeholder="Ask something"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ marginRight: 10 }}
-        />
-        <button onClick={doSearch} disabled={!token}>
+        <input placeholder="Ask something" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <button onClick={doSearch} disabled={!token} style={{ marginLeft: 10 }}>
           Search
         </button>
         <pre style={{ background: "#f4f4f4", padding: 10, marginTop: 20 }}>
