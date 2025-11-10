@@ -4,6 +4,8 @@ python-multipart
 psycopg2-binary
 SQLAlchemy
 passlib[bcrypt]
+# 💡 FIX: Pin the compatible version of bcrypt to prevent 'AttributeError: module 'bcrypt' has no attribute '__about__''
+bcrypt==4.0.1 
 python-jose[cryptography]
 python-dotenv
 langchain
