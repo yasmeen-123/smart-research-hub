@@ -19,7 +19,7 @@ from .db import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 # --- Create FastAPI app ---
-app = FastAPI(title="Smart Research Hub API", version="1.0")
+app = FastAPI(title="Smart Research Hub", version="1.0")
 
 # --- ✅ Enable CORS (Allow frontend at localhost:3000) ---
 app.add_middleware(
