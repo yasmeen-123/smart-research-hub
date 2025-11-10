@@ -2,17 +2,18 @@ import os
 import shutil
 import numpy as np
 from fastapi import FastAPI, Depends, File, UploadFile, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, EmailStr
 
 # --- Load environment variables ---
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 # --- Import project modules ---
 from . import db, models, auth, utils, embeddings
-from .schemas import UserCreate, Token
 from .db import SessionLocal, engine
 
 # --- Initialize DB ---
@@ -21,13 +22,13 @@ models.Base.metadata.create_all(bind=engine)
 # --- Create FastAPI app ---
 app = FastAPI(title="Smart Research Hub", version="1.0")
 
-# --- ✅ Enable CORS (Allow frontend at localhost:3000) ---
+# --- ✅ Enable CORS ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:3000",
         "http://localhost:3000"
-    ],  # both forms, for safety
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,14 +46,25 @@ def get_db():
     finally:
         db_session.close()
 
-# --- Root route (test endpoint) ---
+# --- Pydantic models for frontend validation ---
+class UserCreateModel(BaseModel):
+    email: EmailStr
+    password: str
+
+class SearchQueryModel(BaseModel):
+    query: str
+
+# --- Root route ---
 @app.get("/")
 def root():
     return {"message": "✅ Smart Research Hub Backend is running!"}
 
 # --- Register user ---
-@app.post("/register", response_model=Token)
-def register(u: UserCreate, db: Session = Depends(get_db)):
+@app.post("/register")
+def register(u: UserCreateModel, db: Session = Depends(get_db)):
+    if len(u.password) < 6:
+        raise HTTPException(status_code=422, detail="Password must be at least 6 characters")
+
     hashed = auth.hash_password(u.password)
     new_user = models.User(email=u.email, hashed_password=hashed)
     db.add(new_user)
@@ -61,14 +73,14 @@ def register(u: UserCreate, db: Session = Depends(get_db)):
         db.refresh(new_user)
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=422, detail="Email already registered")
 
     token = auth.create_access_token({"sub": new_user.email, "id": new_user.id})
     return {"access_token": token, "token_type": "bearer"}
 
 # --- Login user ---
-@app.post("/login", response_model=Token)
-def login(u: UserCreate, db: Session = Depends(get_db)):
+@app.post("/login")
+def login(u: UserCreateModel, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == u.email).first()
     if not user or not auth.verify_password(u.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -79,16 +91,15 @@ def login(u: UserCreate, db: Session = Depends(get_db)):
 def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing auth header")
-
     token = authorization.split(" ")[1] if " " in authorization else authorization
     payload = auth.decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    if not (user := db.query(models.User).filter(models.User.email == payload.get("sub")).first()):
+    user = db.query(models.User).filter(models.User.email == payload.get("sub")).first()
+    if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    else:
-        return user
+    return user
 
 # --- Upload file ---
 @app.post("/upload")
@@ -102,15 +113,15 @@ async def upload_file(
         shutil.copyfileobj(file.file, f)
 
     text = utils.extract_text(save_path, file.filename)
+    if not text.strip():
+        return {"message": "File saved but no text extracted"}
+
     doc = models.Document(user_id=user.id, filename=file.filename, text=text)
     db.add(doc)
     db.commit()
     db.refresh(doc)
 
     chunks = embeddings.chunk_text(text)
-    if not chunks:
-        return {"message": "File saved but no text extracted"}
-
     vectors = embeddings.embed_texts(chunks)
     index = embeddings.load_index()
     index.add(np.array(vectors).astype("float32"))
@@ -120,10 +131,10 @@ async def upload_file(
 
 # --- Search ---
 @app.post("/search")
-def search(q: dict, user=Depends(get_current_user)):
-    query_text = q.get("query")
-    if not query_text:
-        raise HTTPException(status_code=400, detail="Missing query")
+def search(q: SearchQueryModel, user=Depends(get_current_user)):
+    query_text = q.query
+    if not query_text.strip():
+        raise HTTPException(status_code=422, detail="Query cannot be empty")
 
     emb = embeddings.embeddings_client.embed_query(query_text)
     index = embeddings.load_index()
@@ -133,8 +144,7 @@ def search(q: dict, user=Depends(get_current_user)):
     D, I = index.search(np.array([np.array(emb).astype("float32")]), k=5)
     return {"indices": I.tolist(), "distances": D.tolist()}
 
-# --- Run the server ---
+# --- Run server ---
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
-    
